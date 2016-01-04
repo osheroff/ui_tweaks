@@ -4,19 +4,20 @@ local mui_dragzone = include( "mui/widgets/mui_dragzone" )
 local mui_image = include( "mui/widgets/mui_image" )
 local util = include( "modules/util" )
 local guiex = include( "client/guiex" )
+local cdefs = include( "client_defs" )
 
 function upgradeScreen:onDragInventory( upgrade, item, onDragDrop )
-	local widget = self.screen:startDragDrop( item, "DragItem" )
-	widget.binder.img:setImage( item:getUnitData().profile_icon )
-	-- self.screen:findWidget( "storageDragHilite" ):setColor( cdefs.COLOR_DRAG_DROP:unpack() )
-	self.screen:findWidget( "dragAugment" ).onDragDrop = function() util.coDelegate( self.onDragToAugments, self, upgrade, item ) end
+  local widget = self.screen:startDragDrop( item, "DragItem" )
+  widget.binder.img:setImage( item:getUnitData().profile_icon )
+  self.screen:findWidget( "storageDragHilite" ):setColor( cdefs.COLOR_DRAG_DROP:unpack() )
+  self.screen:findWidget( "dragAugment" ).onDragDrop = function() util.coDelegate( self.onDragToAugments, self, upgrade, item ) end
 
   self._preserved_inventory = {}
   for i, widget in self.screen.binder:forEach( "inv_" ) do
       table.insert(self._preserved_inventory, widget._item)
   end
 
-	return true
+  return true
 end
 
 local function updateButton(screen, widget, item)
@@ -75,6 +76,8 @@ end
 function upgradeScreen:refreshInventory( unitDef, index )
     self:oldRefreshInventory( unitDef, index )
 
+    self._preserved_inventory = {}
+
     gUnitDef = unitDef
     local oldDragWidget = self.screen:findWidget( "drag" )
 
@@ -84,18 +87,32 @@ function upgradeScreen:refreshInventory( unitDef, index )
 
     for i, widget in self.screen.binder:forEach( "inv_" ) do
         local agentPnl = self.screen:findWidget( "agentPnl" )
+
+        local x = widget._cont._x
+        local y = widget._cont._y
+        local w = 58.5 / 1280
+        local h = 63
+
+        -- if i == 1 then
+          -- x = x + 4
+          -- w = w - 4
+        -- elseif i == 4 then
+          -- x = x - 4
+          -- w = w - 4
+        -- end
+
         if not self.screen:findWidget( "drag_" .. i ) then
             local dragzone_widget = mui_dragzone(self.screen, {
                 name = "drag_" .. i,
                 isVisible = true,
                 noInput = true,
-                x = widget._cont._x,
-                y = widget._cont._y,
-                w = 58,
-                h = 62,
+                x = x,
+                y = y,
+                w = w,
+                h = h,
                 xpx = true,
                 ypx = true,
-                wpx = true,
+                wpx = false,
                 hpx = true,
                 sx = 1,
                 sy = 1,
@@ -106,19 +123,20 @@ function upgradeScreen:refreshInventory( unitDef, index )
             agentPnl:addChild(dragzone_widget)
             local img = mui_image(self.screen, {
                 name = "bg_" .. i,
-                x = widget._cont._x,
-                y = widget._cont._y,
-                w = 58,
-                h = 62,
+                noInput = true,
+                x = x,
+                y = y,
+                w = w,
+                h = h,
                 xpx = true,
                 ypx = true,
-                wpx = true,
+                wpx = false,
                 hpx = true,
                 sx = 1,
                 sy = 1,
                 color =
                 {
-                    1/i, 1, 1, 0.5,
+                    math.random(), math.random(), math.random(), 0.5,
                 },
                 images =
                 {
@@ -127,7 +145,7 @@ function upgradeScreen:refreshInventory( unitDef, index )
                         name = [[]],
                         color =
                         {
-                            1/i,
+                            1,
                             1,
                             1,
                             0.5,
@@ -135,14 +153,14 @@ function upgradeScreen:refreshInventory( unitDef, index )
                     },
                 }
             })
-            -- agentPnl:addChild(img)
+            agentPnl:addChild(img)
         end
     end
 end
 
 function reload()
-		package.loaded[ 'workshop-581951281/item_dragdrop' ] = nil
-    return mod_manager:mountContentMod('workshop-581951281')
+  package.loaded[ 'workshop-581951281/item_dragdrop' ] = nil
+  return mod_manager:mountContentMod('workshop-581951281')
 end
 
 log:write("loaded")
