@@ -4,10 +4,13 @@
 --
 local aiplayer = include('sim/aiplayer')
 local simquery = include('sim/simquery')
+local i_need_a_dollar = {}
 
 aiplayer.oldCreateGuard = aiplayer.createGuard
 function aiplayer:createGuard(sim,unitType)
     local unit = self:oldCreateGuard(sim, unitType)
+    if not i_need_a_dollar.enabled then return unit end
+
     if not unit:getTraits().isDrone and unit:getTraits().cashOnHand == 0 then
 	log:write("setting up cash on hand")
 	unit:getTraits().cashOnHand = 1
@@ -24,3 +27,5 @@ function simquery.calculateCashOnHand( sim, unit )
 	return oldCalculateCashOnHand(sim, unit)
     end
 end
+
+return i_need_a_dollar

@@ -5,16 +5,14 @@ local function init( modApi )
     include( modApi:getScriptPath() .. "/precise_ap" )
     include( modApi:getScriptPath() .. "/need_a_dollar" )
     include( modApi:getScriptPath() .. "/item_dragdrop" )
-    log:write( modApi:getScriptPath() .. "/precise_ap" )
 end
 
 -- load may be called multiple times with different options enabled
 local function load( modApi, options )
     local precise_ap = include( modApi:getScriptPath() .. "/precise_ap" )
+    local i_need_a_dollar = include( modApi:getScriptPath() .. "/need_a_dollar" )
     precise_ap.enabled = options["precise_ap"].enabled
-
-    if options["need_a_dollar"].enabled then
-    end
+    i_need_a_dollar.enabled = options["need_a_dollar"].enabled
 end
 
 
