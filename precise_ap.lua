@@ -1,9 +1,9 @@
+local precise_ap = { enabled = false }
 
 local flagui = include('hud/flag_ui')
 local panel = include('hud/home_panel').panel
 local game = include( "modules/game" )
 
-flagui.oldRefreshFlag = flagui.refreshFlag
 
 local function roundToPointFive( ap )
 	ap = math.max(0, ap)
@@ -14,7 +14,6 @@ local function shiftWidgetRight( w, px )
 	local x, y = w:getPosition()
 	w:setPosition( x + px, nil )
 end
-
 
 function panel:adjustAgentAPWidgets()
 	for i=1, 10 do
@@ -30,6 +29,9 @@ end
 panel.oldRefreshAgent = panel.refreshAgent
 function panel:refreshAgent( unit )
 	self:oldRefreshAgent( unit )
+
+	if not precise_ap.enabled then return end
+
 	self:adjustAgentAPWidgets()
 
 	local widget = self:findAgentWidget( unit:getID() )
@@ -45,9 +47,11 @@ function panel:refreshAgent( unit )
 	widget.binder.apNum:setText( roundToPointFive(ap) )
 end
 
+flagui.oldRefreshFlag = flagui.refreshFlag
 function flagui:refreshFlag( unit, isSelected )
 	unit = unit or self._rig:getUnit()
 	local ret = self:oldRefreshFlag( unit, isSelected )
+	if not precise_ap.enabled then return end
 
 	local sim = self._rig._boardRig:getSim()
 
@@ -59,4 +63,5 @@ function flagui:refreshFlag( unit, isSelected )
 	end
 end
 
+return precise_ap
 
