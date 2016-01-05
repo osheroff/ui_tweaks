@@ -176,7 +176,27 @@ local function onDragCommon( self, upgrade, item )
 
 end
 
-function upgradeScreen:onDragInventory( upgrade, item, oldOnDragDrop )
+
+local function swapFunction( oldModule, newModule, enabled, funcName )
+    local oldFuncName = '_old_' .. funcName
+    if enabled and (not oldModule[oldFuncName]) then
+        oldModule[oldFuncName] = oldModule[funcName]
+        oldModule[funcName] = newModule[funcName]
+    elseif (not enabled) and oldModule[oldFuncName] then
+        oldModule[funcName] = oldModule[oldFuncName]
+        oldModule[oldFuncName] = nil
+    end
+end
+
+local function swapFunctions( oldModule, newModule, enabled, ... )
+    for i, func in ipairs(arg) do
+        swapFunction( oldModule, newModule, enabled, func )
+    end
+end
+
+local newFunctions = {}
+
+function newFunctions:onDragInventory( upgrade, item, oldOnDragDrop )
     onDragCommon( self, upgrade, item )
 
     local unit, unitDef, itemIndex = oldOnDragDrop[2], oldOnDragDrop[3], oldOnDragDrop[6]
@@ -187,7 +207,7 @@ function upgradeScreen:onDragInventory( upgrade, item, oldOnDragDrop )
     return true
 end
 
-function upgradeScreen:onDragStorage( upgrade, item, oldOnDragDrop )
+function newFunctions:onDragStorage( upgrade, item, oldOnDragDrop )
     onDragCommon( self, upgrade, item )
 
     local unit, unitDef, itemIndex = oldOnDragDrop[2], oldOnDragDrop[3], oldOnDragDrop[6]
@@ -197,12 +217,8 @@ function upgradeScreen:onDragStorage( upgrade, item, oldOnDragDrop )
     return true
 end
 
-if not upgradeScreen.oldRefreshInventory then
-    upgradeScreen.oldRefreshInventory = upgradeScreen.refreshInventory
-end
-
-function upgradeScreen:refreshInventory( unitDef, index )
-    self:oldRefreshInventory( unitDef, index )
+function newFunctions:refreshInventory( unitDef, index )
+    self:_old_refreshInventory( unitDef, index )
 
     self._saved_inventory = {}
     local dragWidget = self.screen:findWidget( "drag" )
@@ -210,7 +226,7 @@ function upgradeScreen:refreshInventory( unitDef, index )
     dragWidget.onDragLeave = util.makeDelegate( nil, onDragLeaveInventory, self, dragWidget )
 end
 
-function reload()
-    package.loaded[ 'workshop-581951281/item_dragdrop' ] = nil
-    return mod_manager:mountContentMod('workshop-581951281')
+return function(enabled)
+    swapFunctions(upgradeScreen, newFunctions, enabled, 'onDragInventory', 'onDragStorage', 'refreshInventory')
 end
+
