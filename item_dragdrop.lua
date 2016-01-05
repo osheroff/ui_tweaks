@@ -15,6 +15,8 @@ local function updateButton(screen, widget, item, encumbered)
     end
 end
 
+-- copy/pasted out of desperation from state-upgrade-screen.  Otherwise I was
+-- trying to fish more stuff out of the onClick delegate.
 local function getInventory( unitDef )
     local unit = simfactory.createUnit( unitdefs.createUnitData( unitDef ), nil )
     local inventory = {}
@@ -39,38 +41,48 @@ local function getInventory( unitDef )
     return inventory
 end
 
-local function onDragDrop( self, item, upgrade, unit, unitDef, itemIndex, fromStorage )
-    repl:log("got drag-drop into ", self.screen._lastDragIndex, " itemIndex is ", itemIndex)
-
+local function onDragDropInventory( self, item, upgrade, unit, unitDef, itemIndex, fromStorage )
     local inventory = getInventory( unitDef )
-    local upgradeIndex = inventory[self.screen._lastDragIndex].index
+    local dragIndex = math.min(#inventory + 1, self.screen._lastDragIndex) -- clamp to last empty slot
+    local upgradeIndex
+
+    if inventory[dragIndex] then
+        upgradeIndex = inventory[dragIndex].index
+    else
+        upgradeIndex = #unitDef.upgrades + 1
+    end
 
     if fromStorage then
-        table.insert( unitDef.upgrades, upgradeIndex, upgrade )
-        table.remove( self._agency.upgrades, itemIndex )
+		if #inventory >= 8 then
+			MOAIFmodDesigner.playSound("SpySociety/HUD/gameplay/upgrade_cancel_unit")
+            -- can't open a modal, still in the middle of the DragDrop event, so the modal won't work
+        else
+            MOAIFmodDesigner.playSound("SpySociety/HUD/gameplay/HUD_ItemStorage_TakeOut")
+            table.insert( unitDef.upgrades, upgradeIndex, upgrade )
+            table.remove( self._agency.upgrades, itemIndex )
+        end
     else
+        -- reorder
         table.remove( unitDef.upgrades, itemIndex )
         table.insert( unitDef.upgrades, upgradeIndex, upgrade )
     end
 
     self:refreshInventory(unitDef, self._selectedIndex)
-
-    repl:log("returning")
     return true
 end
 
-local function onDragOver( screen, idx )
-    if screen._lastDragIndex == idx then return true end
-
-    screen._lastDragIndex = idx
+-- reorder inventory UI items on dragOver.  only mucks with the display.
+local function onDragOverInventory( screen, idx )
+    if screen._lastDragIndex == idx then
+        return true
+    else
+        screen._lastDragIndex = idx
+    end
 
     local dragItem = screen:getDragDrop()
-    repl:log("onDragEnter to " .. idx .. " with " .. tostring(dragItem))
 
     local inventory = {}
-
     for i, widget in screen.binder:forEach( "inv_" ) do
-        -- repl:log("widget " .. i .. " is ", widget._item)
         if widget._item and widget._item ~= dragItem and widget:getAlias() then -- getAlias ensures item still exists
             table.insert(inventory, widget._item)
         end
@@ -79,12 +91,12 @@ local function onDragOver( screen, idx )
     idx = math.min(#inventory + 1, idx) -- clamp to last empty slot
     table.insert(inventory, idx, dragItem)
 
-    for i=1,8 do
+    for i, widget in screen.binder:forEach( "inv_" ) do
         local item = inventory[i]
-        local widget = screen:findWidget( "inv_" .. i)
 
         local encumbered = widget.binder.encumbered._cont._isVisible
         updateButton(screen, widget, item, encumbered)
+
         if item and i == idx then
             widget.binder.btn:setColor(0.9, 0.75, 0.37, 1)
         end
@@ -92,6 +104,10 @@ local function onDragOver( screen, idx )
 
     return true
 end
+
+-- we treat the entire drag area as one big target, capturing mouse-over
+-- events whilst in drag mode.  I tried to do this with 8 individual drag
+-- targets but it just didn't work well.
 
 local function handleMouseOverDuringDrag( self, ev )
     if ev.screen:getDragDrop() and ev.eventType == mui_defs.EVENT_MouseMove
@@ -104,16 +120,19 @@ local function handleMouseOverDuringDrag( self, ev )
             idx = idx + 4
         end
 
-        return onDragOver(ev.screen, idx)
+        return onDragOverInventory(ev.screen, idx)
     else
         return mui_button.handleInputEvent( self, ev )
     end
 end
 
-function upgradeScreen:onDragEnter( dragWidget )
+local function onDragEnterInventory( dragWidget )
     dragWidget._button.handleInputEvent = handleMouseOverDuringDrag
     return true
 end
+
+-- stash a copy of the original inventory so as to have something
+-- to draw in dragLeave events; calling refreshInventory there isn't an option.
 
 local function saveInventory( screen )
     local inv = {}
@@ -138,6 +157,12 @@ local function restoreInventory( screen, inv )
     end
 end
 
+local function onDragLeaveInventory( state, dragWidget )
+    restoreInventory( state.screen, state._saved_inventory )
+    dragWidget._button.handleInputEvent = mui_button.handleInputEvent
+    return true
+end
+
 
 local function onDragCommon( self, upgrade, item )
 
@@ -156,7 +181,7 @@ function upgradeScreen:onDragInventory( upgrade, item, oldOnDragDrop )
 
     local unit, unitDef, itemIndex = oldOnDragDrop[2], oldOnDragDrop[3], oldOnDragDrop[6]
 
-    self.screen:findWidget( "drag" ).onDragDrop = function(item) return onDragDrop(self, item, upgrade, unit, unitDef, itemIndex, false) end
+    self.screen:findWidget( "drag" ).onDragDrop = function(item) return onDragDropInventory(self, item, upgrade, unit, unitDef, itemIndex, false) end
     self.screen:findWidget( "storageDrag" ).onDragDrop = function() util.coDelegate( oldOnDragDrop ) end
     self.screen:findWidget( "storageDragHilite" ):setColor( cdefs.COLOR_DRAG_DROP:unpack() )
     return true
@@ -167,18 +192,10 @@ function upgradeScreen:onDragStorage( upgrade, item, oldOnDragDrop )
 
     local unit, unitDef, itemIndex = oldOnDragDrop[2], oldOnDragDrop[3], oldOnDragDrop[6]
 
-    self.screen:findWidget( "drag" ).onDragDrop = function(item) return onDragDrop(self, item, upgrade, unit, unitDef, itemIndex, true) end
+    self.screen:findWidget( "drag" ).onDragDrop = function(item) return onDragDropInventory(self, item, upgrade, unit, unitDef, itemIndex, true) end
     self.screen:findWidget( "dragHilite" ):setColor( cdefs.COLOR_DRAG_DROP:unpack() )
     return true
 end
-
-function upgradeScreen:onDragLeave( dragWidget )
-    repl:log( "onDragLeave, restoring inventory" )
-    restoreInventory( self.screen, self._saved_inventory )
-    dragWidget._button.handleInputEvent = mui_button.handleInputEvent
-    return true
-end
-
 
 if not upgradeScreen.oldRefreshInventory then
     upgradeScreen.oldRefreshInventory = upgradeScreen.refreshInventory
@@ -189,13 +206,11 @@ function upgradeScreen:refreshInventory( unitDef, index )
 
     self._saved_inventory = {}
     local dragWidget = self.screen:findWidget( "drag" )
-    dragWidget.onDragEnter = util.makeDelegate( self, 'onDragEnter', dragWidget )
-    dragWidget.onDragLeave = util.makeDelegate( self, 'onDragLeave', dragWidget )
+    dragWidget.onDragEnter = util.makeDelegate( nil, onDragEnterInventory, dragWidget )
+    dragWidget.onDragLeave = util.makeDelegate( nil, onDragLeaveInventory, self, dragWidget )
 end
 
 function reload()
     package.loaded[ 'workshop-581951281/item_dragdrop' ] = nil
     return mod_manager:mountContentMod('workshop-581951281')
 end
-
-log:write("loaded")
