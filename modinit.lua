@@ -13,6 +13,11 @@ local function load( modApi, options )
 
     precise_ap.enabled = options["precise_ap"].enabled
     i_need_a_dollar.enabled = options["need_a_dollar"].enabled
+
+    if not options["inv_drag_drop"] then
+        options["inv_drag_drop"] = { enabled = true }
+    end
+
     item_dragdrop(options["inv_drag_drop"].enabled)
 end
 
