@@ -88,6 +88,10 @@ local function onDragOverInventory( screen, idx )
         end
     end
 
+    if #inventory >= 8 then -- if we were reordering with a full inventory this will be 7
+        return true
+    end
+
     idx = math.min(#inventory + 1, idx) -- clamp to last empty slot
     table.insert(inventory, idx, dragItem)
 
