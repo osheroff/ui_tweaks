@@ -175,7 +175,7 @@ end
 local function onDragCommon( self, upgrade, item )
 
     local widget = self.screen:startDragDrop( item, "DragItem" )
-    widget.binder.img:setImage( item:getUnitData().profile_icon )
+    widget.binder.img:setImage( item:getUnitData().profile_icon_100 )
 
     self.screen._lastDragIndex = nil
     self._saved_inventory = saveInventory( self.screen )
