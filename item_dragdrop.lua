@@ -43,13 +43,17 @@ end
 
 local function onDragDropInventory( self, item, upgrade, unit, unitDef, itemIndex, fromStorage )
     local inventory = getInventory( unitDef )
-    local dragIndex = math.min(#inventory + 1, self.screen._lastDragIndex) -- clamp to last empty slot
-    local upgradeIndex
+    local dragIndex = self.screen._lastDragIndex
+    local upgradeInsertAt
 
-    if inventory[dragIndex] then
-        upgradeIndex = inventory[dragIndex].index
+    if dragIndex > #inventory then
+        if fromStorage then
+            upgradeInsertAt = #unitDef.upgrades + 1
+        else
+            upgradeInsertAt = #unitDef.upgrades -- we'll be removing it first.
+        end
     else
-        upgradeIndex = #unitDef.upgrades + 1
+        upgradeInsertAt = inventory[dragIndex]
     end
 
     if fromStorage then
@@ -58,13 +62,13 @@ local function onDragDropInventory( self, item, upgrade, unit, unitDef, itemInde
             -- can't open a modal, still in the middle of the DragDrop event, so the modal won't work
         else
             MOAIFmodDesigner.playSound("SpySociety/HUD/gameplay/HUD_ItemStorage_TakeOut")
-            table.insert( unitDef.upgrades, upgradeIndex, upgrade )
-            table.remove( self._agency.upgrades, itemIndex )
+            table.insert( unitDef.upgrades, upgradeInsertAt, upgrade )
+            table.remove( self._agency.upgrades, upgradeInsertAt )
         end
     else
         -- reorder
         table.remove( unitDef.upgrades, itemIndex )
-        table.insert( unitDef.upgrades, upgradeIndex, upgrade )
+        table.insert( unitDef.upgrades, upgradeInsertAt, upgrade )
     end
 
     self:refreshInventory(unitDef, self._selectedIndex)
