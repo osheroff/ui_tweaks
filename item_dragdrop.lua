@@ -53,7 +53,7 @@ local function onDragDropInventory( self, item, upgrade, unit, unitDef, itemInde
             upgradeInsertAt = #unitDef.upgrades -- we'll be removing it first.
         end
     else
-        upgradeInsertAt = inventory[dragIndex]
+        upgradeInsertAt = inventory[dragIndex].index
     end
 
     if fromStorage then
@@ -63,7 +63,7 @@ local function onDragDropInventory( self, item, upgrade, unit, unitDef, itemInde
         else
             MOAIFmodDesigner.playSound("SpySociety/HUD/gameplay/HUD_ItemStorage_TakeOut")
             table.insert( unitDef.upgrades, upgradeInsertAt, upgrade )
-            table.remove( self._agency.upgrades, upgradeInsertAt )
+            table.remove( self._agency.upgrades, itemIndex )
         end
     else
         -- reorder
