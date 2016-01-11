@@ -34,7 +34,7 @@ local function load( modApi, options )
     autoEnable(options, "precise_icons")
     autoEnable(options, "doors_while_dragging")
 
-    i_need_a_dollar.enabled = options["need_a_dollar"].enabled
+    i_need_a_dollar( options["need_a_dollar"].enabled )
     precise_icons( options["precise_icons"].enabled )
     item_dragdrop( options["inv_drag_drop"].enabled )
     doors_while_dragging( options["doors_while_dragging"].enabled )
