@@ -173,7 +173,6 @@ end
 
 
 local function onDragCommon( self, upgrade, item )
-
     local widget = self.screen:startDragDrop( item, "DragItem" )
     widget.binder.img:setImage( item:getUnitData().profile_icon_100 )
 
@@ -181,30 +180,11 @@ local function onDragCommon( self, upgrade, item )
     self._saved_inventory = saveInventory( self.screen )
 
     self.screen:findWidget( "dragAugment" ).onDragDrop = function() util.coDelegate( self.onDragToAugments, self, upgrade, item ) end
-
-end
-
-
-local function swapFunction( oldModule, newModule, enabled, funcName )
-    local oldFuncName = '_old_' .. funcName
-    if enabled and (not oldModule[oldFuncName]) then
-        oldModule[oldFuncName] = oldModule[funcName]
-        oldModule[funcName] = newModule[funcName]
-    elseif (not enabled) and oldModule[oldFuncName] then
-        oldModule[funcName] = oldModule[oldFuncName]
-        oldModule[oldFuncName] = nil
-    end
-end
-
-local function swapFunctions( oldModule, newModule, enabled, ... )
-    for i, func in ipairs(arg) do
-        swapFunction( oldModule, newModule, enabled, func )
-    end
 end
 
 local newFunctions = {}
 
-function newFunctions:onDragInventory( upgrade, item, oldOnDragDrop )
+local function onDragInventory( _, self, upgrade, item, oldOnDragDrop )
     onDragCommon( self, upgrade, item )
 
     local unit, unitDef, itemIndex = oldOnDragDrop[2], oldOnDragDrop[3], oldOnDragDrop[6]
@@ -215,7 +195,7 @@ function newFunctions:onDragInventory( upgrade, item, oldOnDragDrop )
     return true
 end
 
-function newFunctions:onDragStorage( upgrade, item, oldOnDragDrop )
+local function onDragStorage( _, self, upgrade, item, oldOnDragDrop )
     onDragCommon( self, upgrade, item )
 
     local unit, unitDef, itemIndex = oldOnDragDrop[2], oldOnDragDrop[3], oldOnDragDrop[6]
@@ -225,8 +205,8 @@ function newFunctions:onDragStorage( upgrade, item, oldOnDragDrop )
     return true
 end
 
-function newFunctions:refreshInventory( unitDef, index )
-    self:_old_refreshInventory( unitDef, index )
+local function refreshInventory( originalFunction, self, unitDef, index )
+    originalFunction( self, unitDef, index )
 
     self._saved_inventory = {}
     local dragWidget = self.screen:findWidget( "drag" )
@@ -234,7 +214,11 @@ function newFunctions:refreshInventory( unitDef, index )
     dragWidget.onDragLeave = util.makeDelegate( nil, onDragLeaveInventory, self, dragWidget )
 end
 
-return function(enabled)
-    swapFunctions(upgradeScreen, newFunctions, enabled, 'onDragInventory', 'onDragStorage', 'refreshInventory')
-end
+local patches = {
+    { package = upgradeScreen, name = 'onDragInventory',  f = onDragInventory },
+    { package = upgradeScreen, name = 'onDragStorage',    f = onDragStorage },
+    { package = upgradeScreen, name = 'refreshInventory', f = refreshInventory }
+}
+
+return monkeyPatch( patches )
 
