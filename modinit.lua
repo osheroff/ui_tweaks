@@ -28,7 +28,6 @@ local function load( modApi, options )
     local precise_icons = include( modApi:getScriptPath() .. "/precise_icons" )
     local doors_while_dragging = include( modApi:getScriptPath() .. "/doors_while_dragging" )
 
-    precise_ap.enabled = options["precise_ap"].enabled
 
     autoEnable(options, "inv_drag_drop")
     autoEnable(options, "precise_icons")
@@ -38,8 +37,7 @@ local function load( modApi, options )
     precise_icons( options["precise_icons"].enabled )
     item_dragdrop( options["inv_drag_drop"].enabled )
     doors_while_dragging( options["doors_while_dragging"].enabled )
-
-
+    precise_ap ( options["precise_ap"].enabled )
 end
 
 
