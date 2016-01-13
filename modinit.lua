@@ -27,6 +27,7 @@ local function load( modApi, options )
     local item_dragdrop = include( modApi:getScriptPath() .. "/item_dragdrop" )
     local precise_icons = include( modApi:getScriptPath() .. "/precise_icons" )
     local doors_while_dragging = include( modApi:getScriptPath() .. "/doors_while_dragging" )
+    local tracks = include( modApi:getScriptPath() .. "/tracks" )
 
 
     autoEnable(options, "inv_drag_drop")
@@ -38,8 +39,13 @@ local function load( modApi, options )
     item_dragdrop( options["inv_drag_drop"].enabled )
     doors_while_dragging( options["doors_while_dragging"].enabled )
     precise_ap ( options["precise_ap"].enabled )
+    tracks ( true )
 end
 
+function _reload_tweaks()
+    package.loaded[ 'workshop-581951281/tracks' ] = nil
+    return mod_manager:mountContentMod('workshop-581951281')
+end
 
 -- gets called before localization occurs and before content is loaded
 local function initStrings( modApi )
