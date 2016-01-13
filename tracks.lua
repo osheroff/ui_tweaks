@@ -28,8 +28,8 @@ local function calculatePathColors( self, unitID, pathPoints )
 
     for i = 2, #pathPoints do
         local prevPathPoint, pathPoint = pathPoints[i-1], pathPoints[i]
-        local prevPointKey  = "" .. prevPathPoint.x .. "." .. prevPathPoint.y
-        local pointKey = "" .. pathPoint.x .. "." .. pathPoint.y
+        local prevPointKey  = prevPathPoint.x .. "." .. prevPathPoint.y
+        local pointKey = pathPoint.x .. "." .. pathPoint.y
 
         local collided = false
 
@@ -40,12 +40,8 @@ local function calculatePathColors( self, unitID, pathPoints )
         collisions[pointKey][unitID] = prevPointKey
 
         for otherUnitID in pairs( collisions[pointKey] ) do
-            if unitID ~= otherUnitID then
-                local otherPrevPointKey = collisions[pointKey][otherUnitID]
-                repl:log("checking ", pointKey, unitID, prevPointKey, otherUnitID, otherPrevPointKey)
-                if otherPrevPointKey == prevPointKey then
-                    collided = true
-                end
+            if unitID ~= otherUnitID and collisions[pointKey][otherUnitID] == prevPointKey then
+                collided = true
             end
         end
 
@@ -54,25 +50,6 @@ local function calculatePathColors( self, unitID, pathPoints )
         else
             table.insert(colors, unitColor)
         end
-            --[[
-            collisions[pointKey][unitID] = 1
-            local nColors = 0
-            local avg = color(0, 0, 0, 0.9)
-
-            for u in pairs( collisions[pointKey] ) do
-                local c = self._pathColors[ u ]
-                avg.r = avg.r + c.r
-                avg.g = avg.g + c.g
-                avg.b = avg.b + c.b
-                nColors = nColors + 1
-            end
-
-            avg.r = avg.r / nColors
-            avg.g = avg.g / nColors
-            avg.b = avg.b / nColors
-            table.insert( colors, avg )
-            --]]
-
     end
 
     return colors
