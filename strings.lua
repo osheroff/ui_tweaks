@@ -10,7 +10,9 @@ local UI_TWEAKS_STRINGS =
 		PRECISE_ICONS = "PRECISE ICONS",
 		PRECISE_ICONS_TIP = "Label stim, paralyzer, cloak, etc with the different level of item",
 		DOORS_WHILE_DRAGGING = "LAY THAT BODY DOWN, BOY",
-		DOORS_WHILE_DRAGGING_TIP = "Allow door manipulation while dragging bodies"
+		DOORS_WHILE_DRAGGING_TIP = "Allow door manipulation while dragging bodies",
+		COLORED_TRACKS = "YES, WE ARE ALL INDIVIDUALS!",
+		COLORED_TRACKS_TIP = "Guards get uniquely colored tracks and interest points"
 	}
 }
 
