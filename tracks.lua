@@ -1,30 +1,32 @@
 local color = include( "modules/color" )
 local pathrig = include( "gameplay/pathrig" )
+local agentrig = include( "gameplay/agentrig" )
 local util = include( "modules/util" )
 
-local PATH_COLORS = {
-    color(.5, 1, 0, 1.0),
-    color(0, 0.5, 1, 1.0),
-    color(1, 1, 0.5, 1.0),
-    color(0.8, 0.2, 0, 1.0),
-    color(1, 0.5, 0.5, 1.0),
-    color(0.5, 1, 0.5, 1.0)
+PATH_COLORS = {
+    color(0,     1,     0.1,   1.0),
+    color(1,     1,     0.1,   1.0),
+    color(1,     0.7,   0.1,   1.0),
+    color(1,     1,     0.6,   1.0),
+    color(0.5,   1,     0.7,   1.0),
+    color(0,     0.7,   0.7,   1.0)
 }
 
 local path_color_idx = 0
 
-local function assignColor( pathColors, unitID )
-    if not pathColors[ unitID ] then
-        pathColors[ unitID ] = PATH_COLORS[ (path_color_idx % #PATH_COLORS) + 1 ]
+local function assignColor( unit )
+    local traits = unit:getTraits()
+    if not traits.pathColor then
+        traits.pathColor = PATH_COLORS[ (path_color_idx % #PATH_COLORS) + 1 ]
         path_color_idx = path_color_idx + 1
     end
-    return pathColors[ unitID ]
+    return traits.pathColor
 end
 
 local function calculatePathColors( self, unitID, pathPoints )
     local collisions = self._pathCollisions
     local colors = {}
-    local unitColor = assignColor ( self._pathColors, unitID )
+    local unitColor = assignColor( self._boardRig:getSim():getUnit( unitID ) )
 
     for i = 2, #pathPoints do
         local prevPathPoint, pathPoint = pathPoints[i-1], pathPoints[i]
@@ -77,8 +79,22 @@ local function refreshAllTracks( originalFunction, self )
     return originalFunction( self )
 end
 
+
+local function drawInterest( originalFunction, self, interest, alerted )
+   originalFunction( self, interest, alerted )
+   if self.interestProp then
+       local color = assignColor( self:getUnit() )
+       self.interestProp:setSymbolModulate("interest_border", color:unpack() )
+       self.interestProp:setSymbolModulate("down_line", color:unpack() )
+       self.interestProp:setSymbolModulate("down_line_moving", color:unpack() )
+       self.interestProp:setSymbolModulate("interest_line_moving", color:unpack() )
+   end
+end
+
+
 local patches = {
-    { package = pathrig.rig, name = 'refreshPlannedPath', f = refreshPlannedPath },
-    { package = pathrig.rig, name = 'refreshAllTracks',   f = refreshAllTracks }
+    { package = pathrig.rig,  name = 'refreshPlannedPath', f = refreshPlannedPath },
+    { package = pathrig.rig,  name = 'refreshAllTracks',   f = refreshAllTracks },
+    { package = agentrig.rig, name = 'drawInterest',       f = drawInterest }
 }
 return monkeyPatch(patches)
