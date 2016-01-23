@@ -3,14 +3,19 @@ local simquery = include ( "sim/simquery" )
 local simactions = include ( "sim/simactions" )
 local moveBody = include ( "sim/abilities/moveBody" )
 
-local canModifyExit = function( oldFunction, ... )
-    local canModify, reason = oldFunction(unpack(arg))
+local canModifyExit = function( oldFunction, unit, exitop, cell, dir )
+    local canModify, reason = oldFunction(unit, exitop, cell, dir )
 
     if canModify == false and reason == STRINGS.UI.DOORS.DROP_BODY then
-        return true
-    else
-        return canModify, reason
+        if moveBody:canUseAbility( unit._sim, unit, unit, unit:getTraits().movingBody:getID() ) then
+            local body = unit:getTraits().movingBody
+            unit:getTraits().movingBody = nil
+            canModify, reason = oldFunction( unit, exitop, cell, dir )
+            unit:getTraits().movingBody = body
+        end
     end
+
+    return canModify, reason
 end
 
 local doUseDoorAction = function ( oldFunction, sim, exitOp, unitID, x0, y0, facing )
