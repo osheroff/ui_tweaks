@@ -1,5 +1,4 @@
 local simquery = include ( "sim/simquery" )
-local simquery = include ( "sim/simquery" )
 local simactions = include ( "sim/simactions" )
 local moveBody = include ( "sim/abilities/moveBody" )
 
