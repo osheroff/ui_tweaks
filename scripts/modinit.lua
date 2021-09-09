@@ -3,7 +3,8 @@ local function init( modApi )
     include( modApi:getScriptPath() .. "/monkey_patch" )
 
     modApi:addGenerationOption("precise_ap", STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_AP, STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_AP_TIP)
-    modApi:addGenerationOption("need_a_dollar", STRINGS.MOD_UI_TWEAKS.OPTIONS.NEED_A_DOLLAR, STRINGS.MOD_UI_TWEAKS.OPTIONS.NEED_A_DOLLAR_TIP)
+    -- modApi:addGenerationOption("need_a_dollar", STRINGS.MOD_UI_TWEAKS.OPTIONS.NEED_A_DOLLAR, STRINGS.MOD_UI_TWEAKS.OPTIONS.NEED_A_DOLLAR_TIP)
+    modApi:addGenerationOption("empty_pockets", STRINGS.MOD_UI_TWEAKS.OPTIONS.EMPTY_POCKETS, STRINGS.MOD_UI_TWEAKS.OPTIONS.EMPTY_POCKETS_TIP)
     modApi:addGenerationOption("inv_drag_drop", STRINGS.MOD_UI_TWEAKS.OPTIONS.INV_DRAGDROP, STRINGS.MOD_UI_TWEAKS.OPTIONS.INV_DRAGDROP_TIP)
     modApi:addGenerationOption("precise_icons", STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_ICONS, STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_ICONS_TIP)
     modApi:addGenerationOption("door_while_dragging", STRINGS.MOD_UI_TWEAKS.OPTIONS.DOORS_WHILE_DRAGGING, STRINGS.MOD_UI_TWEAKS.OPTIONS.DOORS_WHILE_DRAGGING_TIP)
@@ -25,18 +26,24 @@ end
 local function load( modApi, options )
     local precise_ap = include( modApi:getScriptPath() .. "/precise_ap" )
     local i_need_a_dollar = include( modApi:getScriptPath() .. "/need_a_dollar" )
+    local empty_pockets = include( modApi:getScriptPath() .. "/empty_pockets" )
     local item_dragdrop = include( modApi:getScriptPath() .. "/item_dragdrop" )
     local precise_icons = include( modApi:getScriptPath() .. "/precise_icons" )
     local doors_while_dragging = include( modApi:getScriptPath() .. "/doors_while_dragging" )
     local tracks = include( modApi:getScriptPath() .. "/tracks" )
 
 
+    autoEnable(options, "empty_pockets")
     autoEnable(options, "inv_drag_drop")
     autoEnable(options, "precise_icons")
     autoEnable(options, "doors_while_dragging")
     autoEnable(options, "colored_tracks")
 
-    i_need_a_dollar( options["need_a_dollar"].enabled )
+	-- need_a_dollar is superceded by empty_pockets
+	-- It changes the sim state, so retain behavior for existing saves.
+    i_need_a_dollar( options["need_a_dollar"] and options["need_a_dollar"].enabled )
+
+	empty_pockets( options["empty_pockets"].enabled )
     precise_icons( options["precise_icons"].enabled )
     item_dragdrop( options["inv_drag_drop"].enabled )
     doors_while_dragging( options["doors_while_dragging"].enabled )
