@@ -2,7 +2,42 @@
 local array = include( "modules/array" )
 local simquery = include( "sim/simquery" )
 
--- Copy of vanilla simquery.canLoot
+-- Searching the target will either produce lootable goods or new information on its absence.
+local function searchIsValuable( sim, unit, targetUnit )
+	-- Has target never been searched or does unit bring a new search tier?
+	if not targetUnit:getTraits().searched then
+		return true
+	end
+	if unit:getTraits().anarchyItemBonus and simquery.isAgent( targetUnit ) and not targetUnit:getTraits().searchedAnarchy5 then
+		return true
+	end
+
+	-- Does target have something we can steal?
+	-- (UIT: vanilla check from canLoot starts here)
+	local inventoryCount = targetUnit:getInventoryCount()
+	if not unit:getTraits().anarchyItemBonus then
+		for i,child in ipairs(targetUnit:getChildren()) do
+			if child:getTraits().anarchySpecialItem and child:hasAbility( "carryable" ) then
+				inventoryCount = inventoryCount -1
+			end
+		end
+	end
+
+
+	if not unit:getTraits().largeSafeMapIntel then
+		for i,child in ipairs(targetUnit:getChildren()) do
+			if child:getTraits().largeSafeMapIntel and child:hasAbility( "carryable" ) then
+				inventoryCount = inventoryCount -1
+			end
+		end
+	end
+	return (simquery.calculateCashOnHand( sim, targetUnit ) > 0
+			or simquery.calculatePWROnHand( sim, targetUnit ) > 0
+			or inventoryCount > 0)
+end
+
+-- Modified copy of vanilla simquery.canLoot
+-- Changes at 'UIT:'
 local function canLoot( originalFunction, sim, unit, targetUnit )
 	if unit:getTraits().isDrone then
 		return false
@@ -36,24 +71,8 @@ local function canLoot( originalFunction, sim, unit, targetUnit )
 		end
 	end
 
-	local inventoryCount = targetUnit:getInventoryCount()
-	if not unit:getTraits().anarchyItemBonus then
-		for i,child in ipairs(targetUnit:getChildren()) do
-			if child:getTraits().anarchySpecialItem and child:hasAbility( "carryable" ) then
-				inventoryCount = inventoryCount -1
-			end
-		end
-	end
-
-
-	if not unit:getTraits().largeSafeMapIntel then
-		for i,child in ipairs(targetUnit:getChildren()) do
-			if child:getTraits().largeSafeMapIntel and child:hasAbility( "carryable" ) then
-				inventoryCount = inventoryCount -1
-			end
-		end
-	end
-	if simquery.calculateCashOnHand( sim, targetUnit ) <= 0 and simquery.calculatePWROnHand( sim, targetUnit ) <=0 and inventoryCount == 0 then
+	-- UIT: Extracted method. Considers additional factors valuable to search.
+	if not searchIsValuable( sim, unit, targetUnit ) then
 		return false
 	end
 
