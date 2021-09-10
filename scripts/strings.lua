@@ -15,7 +15,16 @@ local UI_TWEAKS_STRINGS =
 		DOORS_WHILE_DRAGGING_TIP = "Allow door manipulation while dragging bodies",
 		COLORED_TRACKS = "YES, WE ARE ALL INDIVIDUALS!",
 		COLORED_TRACKS_TIP = "Guards get uniquely colored tracks and interest points"
-	}
+	},
+
+	UI =
+	{
+		DIALOGS =
+		{
+			NO_LOOT_TITLE = "NOTHING FOUND",
+			NO_LOOT_BODY = "{1} found no valuables on the target.",
+		},
+	},
 }
 
 return UI_TWEAKS_STRINGS

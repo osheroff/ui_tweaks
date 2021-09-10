@@ -1,6 +1,53 @@
 
+local items_panel = include( "hud/items_panel" )
+local modalDialog = include( "states/state-modal-dialog" )
 local array = include( "modules/array" )
+local util = include( "modules/util" )
+local simdefs = include( "sim/simdefs" )
 local simquery = include( "sim/simquery" )
+
+-- ======================
+-- client/hud/items_panel
+-- ======================
+
+local function lootPanelInit( originalFunction, self, ... )
+	originalFunction( self, ... )
+	self._uit_firstRefresh = true
+end
+
+local function lootPanelRefresh( originalFunction, self, ... )
+	if self._uit_firstRefresh then
+		self._uit_firstRefresh = nil
+
+		-- Upon first displaying the loot panel, check for any loot.
+		local screen = self._screen
+		local lootWidget = screen:findWidget( "inventory" )
+		local hasItem = false
+		for i, widget in lootWidget.binder:forEach( "item" ) do
+			if self:refreshItem( widget, i, "item" ) then
+				hasItem = true
+			end
+		end
+
+		if not hasItem then
+			-- Instead notify the user that there was no loot.
+			MOAIFmodDesigner.playSound( simdefs.SOUND_HUD_INCIDENT_NEGATIVE.path )
+			local game = self._hud._game
+			self:destroy()
+			modalDialog.show(
+			  util.sformat( STRINGS.MOD_UI_TWEAKS.UI.DIALOGS.NO_LOOT_BODY, self._unit:getName() ),
+			  STRINGS.MOD_UI_TWEAKS.UI.DIALOGS.NO_LOOT_TITLE
+		    )
+			return
+		end
+	end
+
+	originalFunction( self, ... )
+end
+
+-- ============
+-- sim/simquery
+-- ============
 
 -- Searching the target will either produce lootable goods or new information on its absence.
 local function searchIsValuable( sim, unit, targetUnit )
@@ -91,6 +138,8 @@ local function canLoot( originalFunction, sim, unit, targetUnit )
 end
 
 local patches = {
+	{ package = items_panel.loot, name = 'init', f = lootPanelInit },
+	{ package = items_panel.loot, name = 'refresh', f = lootPanelRefresh },
 	{ package = simquery, name = 'canLoot', f = canLoot },
 }
 
