@@ -49,8 +49,13 @@ local function handleNode( originalFunction, self, to_cell, from_node, goal_cell
 	if n then
 		local simquery = self._sim:getQuery()
 
-		-- Update real MP cost
-		local dc = simquery.getMoveCost( from_node.location, to_cell )
+		-- Update real MP cost. If Neptune is installed, use the alternate move cost function.
+		local dc
+		if simquery.getTrueMoveCost then
+			dc = simquery.getTrueMoveCost( self._unit, from_node.location, to_cell )
+		else
+			dc = simquery.getMoveCost( from_node.location, to_cell )
+		end
 		n.realCost = from_node.realCost + dc
 
 		-- Check max MP against the real MP cost.
