@@ -22,7 +22,8 @@ local function autoEnable( options, option )
 end
 
 -- load may be called multiple times with different options enabled
-local function load( modApi, options )
+-- params is present iff Sim Constructor is installed and this is a new campaign.
+local function load( modApi, options, params )
     local precise_ap = include( modApi:getScriptPath() .. "/precise_ap" )
     local i_need_a_dollar = include( modApi:getScriptPath() .. "/need_a_dollar" )
     local empty_pockets = include( modApi:getScriptPath() .. "/empty_pockets" )
@@ -38,8 +39,11 @@ local function load( modApi, options )
     autoEnable(options, "doors_while_dragging")
     autoEnable(options, "colored_tracks")
 
-	-- need_a_dollar is superceded by empty_pockets
-	-- It changes the sim state, so retain behavior for existing saves.
+	-- On new campaign, clear `need_a_dollar` in case Generation Presets preserved it from an earlier version.
+	if params and options["need_a_dollar"] then
+		options["need_a_dollar"] = nil
+	end
+	-- `need_a_dollar` changes the sim state, so retain behavior for existing saves.
     i_need_a_dollar( options["need_a_dollar"] and options["need_a_dollar"].enabled )
 
 	empty_pockets( options["empty_pockets"].enabled )
