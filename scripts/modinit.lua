@@ -8,6 +8,7 @@ local function init( modApi )
     modApi:addGenerationOption("precise_icons", STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_ICONS, STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_ICONS_TIP)
     modApi:addGenerationOption("door_while_dragging", STRINGS.MOD_UI_TWEAKS.OPTIONS.DOORS_WHILE_DRAGGING, STRINGS.MOD_UI_TWEAKS.OPTIONS.DOORS_WHILE_DRAGGING_TIP)
     modApi:addGenerationOption("colored_tracks", STRINGS.MOD_UI_TWEAKS.OPTIONS.COLORED_TRACKS, STRINGS.MOD_UI_TWEAKS.OPTIONS.COLORED_TRACKS_TIP)
+    modApi:addGenerationOption("step_carefully", STRINGS.MOD_UI_TWEAKS.OPTIONS.STEP_CAREFULLY, STRINGS.MOD_UI_TWEAKS.OPTIONS.STEP_CAREFULLY_TIP)
 
     local dataPath = modApi:getDataPath()
     KLEIResourceMgr.MountPackage( dataPath .. "/gui.kwad", "data" )
@@ -29,12 +30,14 @@ local function load( modApi, options )
     local precise_icons = include( modApi:getScriptPath() .. "/precise_icons" )
     local doors_while_dragging = include( modApi:getScriptPath() .. "/doors_while_dragging" )
     local tracks = include( modApi:getScriptPath() .. "/tracks" )
+    local step_carefully = include( modApi:getScriptPath() .. "/step_carefully" )
 
 
     autoEnable(options, "inv_drag_drop")
     autoEnable(options, "precise_icons")
     autoEnable(options, "doors_while_dragging")
     autoEnable(options, "colored_tracks")
+    autoEnable(options, "step_carefully")
 
     i_need_a_dollar( options["need_a_dollar"].enabled )
     precise_icons( options["precise_icons"].enabled )
@@ -42,6 +45,7 @@ local function load( modApi, options )
     doors_while_dragging( options["doors_while_dragging"].enabled )
     precise_ap( options["precise_ap"].enabled )
     tracks( options["colored_tracks"].enabled )
+    step_carefully( options["step_carefully"].enabled )
 end
 
 function _reload_tweaks()
