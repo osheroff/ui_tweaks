@@ -8,6 +8,7 @@ local function init( modApi )
     modApi:addGenerationOption("precise_icons", STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_ICONS, STRINGS.MOD_UI_TWEAKS.OPTIONS.PRECISE_ICONS_TIP)
     modApi:addGenerationOption("door_while_dragging", STRINGS.MOD_UI_TWEAKS.OPTIONS.DOORS_WHILE_DRAGGING, STRINGS.MOD_UI_TWEAKS.OPTIONS.DOORS_WHILE_DRAGGING_TIP)
     modApi:addGenerationOption("colored_tracks", STRINGS.MOD_UI_TWEAKS.OPTIONS.COLORED_TRACKS, STRINGS.MOD_UI_TWEAKS.OPTIONS.COLORED_TRACKS_TIP)
+    modApi:addGenerationOption("step_carefully", STRINGS.MOD_UI_TWEAKS.OPTIONS.STEP_CAREFULLY, STRINGS.MOD_UI_TWEAKS.OPTIONS.STEP_CAREFULLY_TIP)
 
     local dataPath = modApi:getDataPath()
     KLEIResourceMgr.MountPackage( dataPath .. "/gui.kwad", "data" )
@@ -31,6 +32,7 @@ local function load( modApi, options, params )
     local precise_icons = include( modApi:getScriptPath() .. "/precise_icons" )
     local doors_while_dragging = include( modApi:getScriptPath() .. "/doors_while_dragging" )
     local tracks = include( modApi:getScriptPath() .. "/tracks" )
+    local step_carefully = include( modApi:getScriptPath() .. "/step_carefully" )
 
 
     autoEnable(options, "empty_pockets")
@@ -38,6 +40,7 @@ local function load( modApi, options, params )
     autoEnable(options, "precise_icons")
     autoEnable(options, "doors_while_dragging")
     autoEnable(options, "colored_tracks")
+    autoEnable(options, "step_carefully")
 
 	-- On new campaign, clear `need_a_dollar` in case Generation Presets preserved it from an earlier version.
 	if params and options["need_a_dollar"] then
@@ -52,6 +55,7 @@ local function load( modApi, options, params )
     doors_while_dragging( options["doors_while_dragging"].enabled )
     precise_ap( options["precise_ap"].enabled )
     tracks( options["colored_tracks"].enabled )
+    step_carefully( options["step_carefully"].enabled )
 end
 
 function _reload_tweaks()
