@@ -51,12 +51,16 @@ end
 
 -- Searching the target will either produce lootable goods or new information on its absence.
 local function searchIsValuable( sim, unit, targetUnit )
-	-- Has target never been searched or does unit bring a new search tier?
-	if not targetUnit:getTraits().searched then
-		return true
-	end
-	if unit:getTraits().anarchyItemBonus and simquery.isAgent( targetUnit ) and not targetUnit:getTraits().searchedAnarchy5 then
-		return true
+	if simquery.isAgent( targetUnit ) or targetUnit:getTraits().iscorpse then
+		-- Player expects the target to potentially have an inventory.
+		-- Has target never been searched?
+		if not targetUnit:getTraits().searched then
+			return true
+		end
+		-- Has target never been expertly searched?
+		if unit:getTraits().anarchyItemBonus and not targetUnit:getTraits().searchedAnarchy5 then
+			return true
+		end
 	end
 
 	-- Does target have something we can steal?
